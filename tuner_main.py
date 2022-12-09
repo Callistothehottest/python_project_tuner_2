@@ -123,7 +123,7 @@ while True:
     plt1.plot(t, audio)
     plt1.set_ylim([-0.2, 0.2])
 
-    segment, Zkvals, Ykvals, kint, yint, zkmax, kmax, frequency = AAC(int(duration*fs), fs,lowestFreq, tau)
+    segment, Zkvals, Ykvals, kint, yint, zkmax, kmax, frequency = AAC(np.array(int(duration*fs)), fs,lowestFreq, tau)
     print('Frequency = ', frequency)
 
     plt2.cla()

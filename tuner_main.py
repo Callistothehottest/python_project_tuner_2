@@ -90,7 +90,7 @@ def AAC(data, samplerate,lowestFreq, tau):
         # increment k
         k += 1
 
-    return segment, Zkvals, Ykvals, kint, yint, zkmax, frequency
+    return segment, Zkvals, Ykvals, kint, yint, zkmax, kmax, frequency
 
 # record audio
 fs = 16000
@@ -120,10 +120,11 @@ while True:
 
     # plot stream
     plt1.cla()
+    assert isinstance(audio, object)
     plt1.plot(t, audio)
     plt1.set_ylim([-0.2, 0.2])
 
-    segment, Zkvals, Ykvals, kint, yint, zkmax, kmax, frequency = AAC(np.array(int(duration*fs)), fs,lowestFreq, tau)
+    segment, Zkvals, Ykvals, kint, yint, zkmax, kmax, frequency = AAC(audio, fs, lowestFreq, tau)
     print('Frequency = ', frequency)
 
     plt2.cla()
@@ -134,3 +135,5 @@ while True:
     plt2.grid()
 
     plt.pause(0.0001)
+
+

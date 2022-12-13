@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import soundfile as sf
 import scipy.signal as sig
 import psola
-fs
 
 
 SEMITONES_IN_OCTAVE = 12

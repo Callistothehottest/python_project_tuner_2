@@ -74,7 +74,6 @@ class GuitarScale(object):
             'strings': strings
         }
 
-    @staticmethod
     def interval2idx(intervalinput):
         ''' Convert from interval numbers to notes '''
         interval_flat = ['1', 'b2', '2', 'b3', '3',
@@ -87,13 +86,12 @@ class GuitarScale(object):
             interval = interval_sharp
         return [interval.index(i) for i in intervalinput.split(',')]
 
-    @staticmethod
+
     def description():
         ''' Return a description of the class '''
         return 'available scales/chords:\n  ' + \
                '\n  '.join(' - '.join(x[:2]) for x in SCALEDICT)
 
-    @staticmethod
     def calculate_notes(notes, scale, strings):
         ''' Calculate the notes '''
         scalenotes = [notes[x] for x in scale]
@@ -104,7 +102,6 @@ class GuitarScale(object):
                     fretboard[string][fret] = ''
         return fretboard, scalenotes
 
-    @staticmethod
     def calculate_intervals(scalevalues, scalenotes):
         ''' Calculate the intervals '''
         idx = [x for x in GuitarScale.interval2idx(scalevalues)] + [12]
@@ -144,3 +141,48 @@ class GuitarScale(object):
                      {scalevalues}
         Intervals: {intervals}
         Tuning: {tuning}
+
+         '''.format(
+            dashline='-'*len(scalename),
+            scalename=scalename,
+            scalenotes=' - '.join(x.center(3) for x in scalenotes),
+            scalevalues=' - '.join(x.center(3) for x in scalevalues.split(',')),
+            intervals=intervals,
+            tuning=' - '.join(tuning)
+        ))
+
+        for current_string in xrange(len(strings)):
+            fret_sym, nut_sym = '|', '||'
+            if fretboard[current_string][0] == '':
+                output += ' ' * 2 + nut_sym
+            else:
+                output += fretboard[current_string][0].center(2) + nut_sym
+            for current_fret in range(1, MAXFRET):
+                if fretboard[current_string][current_fret] == '':
+                    output += '-' * 5 + fret_sym
+                elif fretboard[current_string][current_fret] == scalenotes[0] and scaleinput != 0:
+                    output += (
+                        '(' + fretboard[current_string][current_fret] + ')').center(5, '-') + \
+                        fret_sym
+                else:
+                    output += fretboard[current_string][current_fret].center(5, '-') + \
+                        fret_sym
+            output += '\n'
+        output += '\n                  3           5           7' +\
+                     '           9                o o                15'
+
+        return output
+
+if __name__ == '__main__':
+    PARSER = argparse.ArgumentParser(
+        description=GuitarScale.description(),
+        formatter_class=argparse.RawTextHelpFormatter)
+    PARSER.add_argument('key', type=str, help='The key')
+    PARSER.add_argument('scale', type=str, help='The scale')
+    PARSER.add_argument('--chord', '-c', help='Display chord', action='store_true')
+    PARSER.add_argument('--tuning', '-t', help='String tuning', default='EADGBE', type=str)
+    ARGS = PARSER.parse_args()
+
+    SCALE = GuitarScale(key=ARGS.key, scale=ARGS.scale, chord=ARGS.chord, tuning=ARGS.tuning)
+    SCALE.construct_fretboard()
+    print SCALE.printable_fretboard()

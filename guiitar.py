@@ -33,3 +33,114 @@ SCALEDICT = [
     ['Chord', 'Augmented', '1,3,#5'],
     ['Chord', 'Diminished', '1,b3,b5']
 ]
+
+
+class GuitarScale(object):
+    ''' Determines scales & notes on a fretboard
+    '''
+
+    def __init__(self, key, scale, chord, tuning):
+        scale = scale.title()
+        scaleinput = [
+            n for n, l in enumerate(SCALEDICT)
+            if l[1].title().startswith(scale) and (l[0] == 'Chord') is chord][0]
+        scalevalues = SCALEDICT[scaleinput][2]
+
+        key = key.title()
+        if key.find('b') >= 0 or scalevalues.find('b') >= 0:
+            notes = NOTES_FLAT
+        else:
+            notes = NOTES_SHARP
+
+        # get the scale & transpose to key
+        scale = [(x + notes.index(key)) %
+                 12 for x in GuitarScale.interval2idx(scalevalues)]
+
+        strings = list(reversed([NOTES_FLAT.index(z) for z in tuning]))
+
+        self.params = {
+            'fretboard': None,
+            'scalenotes': None,
+            'intervals': None,
+            'notes': notes,
+            'scalevalues': scalevalues,
+            'scaleinput': scaleinput
+        }
+        self.inputs = {
+            'key': key,
+            'scale': scale,
+            'chord': chord,
+            'tuning': tuning,
+            'strings': strings
+        }
+
+    @staticmethod
+    def interval2idx(intervalinput):
+        ''' Convert from interval numbers to notes '''
+        interval_flat = ['1', 'b2', '2', 'b3', '3',
+                         '4', 'b5', '5', 'b6', '6', 'b7', '7']
+        interval_sharp = ['1', '#1', '2', '#2', '3',
+                          '4', '#4', '5', '#5', '6', '#6', '7']
+        if repr(intervalinput).find('b') >= 0:
+            interval = interval_flat
+        else:
+            interval = interval_sharp
+        return [interval.index(i) for i in intervalinput.split(',')]
+
+    @staticmethod
+    def description():
+        ''' Return a description of the class '''
+        return 'available scales/chords:\n  ' + \
+               '\n  '.join(' - '.join(x[:2]) for x in SCALEDICT)
+
+    @staticmethod
+    def calculate_notes(notes, scale, strings):
+        ''' Calculate the notes '''
+        scalenotes = [notes[x] for x in scale]
+        fretboard = [[notes[(x + y) % 12] for x in range(MAXFRET)] for y in strings]
+        for string in xrange(len(strings)):  # eliminate notes not in scale
+            for fret in range(MAXFRET):
+                if fretboard[string][fret] not in scalenotes:
+                    fretboard[string][fret] = ''
+        return fretboard, scalenotes
+
+    @staticmethod
+    def calculate_intervals(scalevalues, scalenotes):
+        ''' Calculate the intervals '''
+        idx = [x for x in GuitarScale.interval2idx(scalevalues)] + [12]
+        intervals = ' - '.join(str((idx[x] - idx[x - 1]) / 2.)
+                               for x in range(1, len(idx)))
+        return scalenotes, intervals
+
+    def construct_fretboard(self):
+        ''' Construct the fretboard '''
+        strings = self.inputs.get('strings')
+        scale = self.inputs.get('scale')
+        notes = self.params.get('notes')
+        scalevalues = self.params.get('scalevalues')
+        fretboard, scalenotes = GuitarScale.calculate_notes(notes, scale, strings)
+        scalenotes, intervals = GuitarScale.calculate_intervals(scalevalues, scalenotes)
+        self.params['fretboard'] = fretboard
+        self.params['scalenotes'] = scalenotes
+        self.params['intervals'] = intervals
+        
+    def printable_fretboard(self):
+        ''' Pretty print '''
+        key = self.inputs.get('key')
+        strings = self.inputs.get('strings')
+        tuning = self.inputs.get('tuning')
+        scaleinput = self.params.get('scaleinput')
+        scalenotes = self.params.get('scalenotes')
+        scalevalues = self.params.get('scalevalues')
+        intervals = self.params.get('intervals')
+        fretboard = self.params.get('fretboard')
+        scalename = key + ' ' + SCALEDICT[scaleinput][1] + ' ' + SCALEDICT[scaleinput][0]
+
+        output = textwrap.dedent('''
+        {dashline}
+        {scalename}
+        {dashline}
+        Scale notes: {scalenotes}
+                     {scalevalues}
+        Intervals: {intervals}
+        Tuning: {tuning}

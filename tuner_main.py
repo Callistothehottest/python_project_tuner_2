@@ -24,7 +24,7 @@ def AAC(data, samplerate,lowestFreq, tau):
     Yk = 0
     YKlast = 0
     Ykvals = np.zeros((len(data)))
-    Zk = 0.0
+    Zk = 0.
     Zkvals = np.zeros((len(data)))
     Zklast = 0
     slopeZk = 0
@@ -42,10 +42,10 @@ def AAC(data, samplerate,lowestFreq, tau):
             Yk = Zk
         else:
             slopeZk = (Zk-Zklast)/(k-klast)
-            slopeYK = (Yk-YKlast)/(k-klast)
+            slopeYK = (Yk - YKlast) / (k - klast)
 
         # determine if ko is found
-        if found_slope == 0 and slopeZk < slopeYk:
+        if found_slope == 0 and slopeZk < slopeYK:
             ko = k
             ZKo = Zk
             found_slope = 1
@@ -58,15 +58,14 @@ def AAC(data, samplerate,lowestFreq, tau):
         # compute new Zk
         Zk = 0
         for n in range(1, Ms):
-            Zk += segment[m]*data[(m+k)]
-        Zkvals[k] = Zk
+            Zk += segment[n]*data[(n+k)]
 
         # compute new Yk
         Yk = ZKo*math.exp(-1.0*(k-ko)/(samplerate*tau))
         Ykvals[k] = Yk
 
         # find intersection polt
-        if k > ko and Zkvals[k] >= Ykvals[k] and ko != 0  and intersect  == 0:
+        if k > ko and Zk >= Yk and ko != 0  and intersect  == 0:
             intersect = 1
             kint = kyint = Ykvals[k]
             print('Intersection Found')
@@ -80,12 +79,12 @@ def AAC(data, samplerate,lowestFreq, tau):
             if Zkvals[k] < Ykvals[k]:
                 N = kmax - ko
                 frequency = samplerate/N
-                k = len(data)*2
+                k = len(data)
 
         if Zkvals[k] < Ykvals[k]:
             N = kmax - ko
             frequency = samplerate/N
-            k = len(data)*2
+            k = len(data)
 
         # increment k
         k += 1
@@ -114,8 +113,8 @@ while True:
     print('Pluck Note')
     time.sleep(1)
     print('Recording...')
-    audio = sd.rec(int(duration*fs),samplerate = fs, channels = 1)[:0]
-    t = np.linspace (0, duration, len(audio))
+    audio = sd.rec(int(duration * fs), samplerate=fs, channels=1)
+    t = np.linspace(0, duration, len(audio))
     print('done')
 
     # plot stream
@@ -135,5 +134,4 @@ while True:
     plt2.grid()
 
     plt.pause(0.0001)
-
 
